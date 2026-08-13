@@ -4,4 +4,7 @@
 # Node resolution finds the installed code.
 - insert:
     - id: miliastra-knowledge
-      name: miliastra-knowledge
+      # name 必须是 Node 能解析到的模块名，即 package.json 的 name（npm 包名）。
+      # 不能写成 'miliastra-knowledge'（那是插件在 cordis context 里的注册名，对应 src/index.ts 的 export const name），
+      # 否则 loader 执行 import('miliastra-knowledge') 会 ERR_MODULE_NOT_FOUND。
+      name: dsh-plugin-miliastra-toolbox

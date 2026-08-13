@@ -1,6 +1,6 @@
 # dsh-plugin-miliastra-toolbox
 
-DeepSeek Harness 插件：把[千星沙箱知识库](https://ugc.070077.xyz)（原神千星奇域 UGC 编辑器的节点/指南/教程/FAQ，300+ 篇文档）接入 dsh。仓库：[github.com/1475505/dsh-plugin-miliastra-toolbox](https://github.com/1475505/dsh-plugin-miliastra-toolbox)
+DeepSeek Harness 插件：接入[千星沙箱知识库](https://ugc.070077.xyz)（原神千星奇域 UGC 编辑器的节点/指南/教程/FAQ，300+ 篇文档）。
 
 ## 这个插件是什么
 
@@ -24,7 +24,7 @@ DeepSeek Harness 插件：把[千星沙箱知识库](https://ugc.070077.xyz)（�
 
 ## 怎么集成到 DeepSeek Harness 里
 
-前置条件：已安装[Deepseek Harness](https://github.com/deepseek-ai/deepseek-harness)
+前置条件：已安装[Deepseek Harness](https://github.com/deepseek-ai/deepseek-harness)，要求环境 Node 22.19+
 
 ### Quick start
 
@@ -125,6 +125,6 @@ dsh-plugin-miliastra-toolbox/
 
 ## 上游与贡献
 
-知识库内容由 [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) 维护，本插件只是消费方，不拥有知识库：
+知识工具由 [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) 维护，本插件只是消费方，不拥有知识库：
 
 - 节点说明、官方指南/教程/FAQ 与社区经验由该仓库的 `knowledge/` 管线构建（爬虫抓取原始文档、`process_docs.py` 派生结构化索引）。
