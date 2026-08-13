@@ -1,0 +1,32 @@
+{
+  "name": "dsh-plugin-miliastra-toolbox",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin: 千星沙箱知识库（节点/指南/教程/FAQ）查询工具与技能",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "main": "src/index.ts",
+  "files": [
+    "src",
+    "skill.md",
+    "cordis.yml",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1475505/dsh-plugin-miliastra-toolbox.git"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-skill": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.yml"
+    }
+  }
+}

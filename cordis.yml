@@ -1,0 +1,7 @@
+# Bundle patch for miliastra-knowledge: the plugin rows this bundle inserts.
+# Installed with `dsh plugin --profile <name> add <this directory>`, which adds
+# the bundle layer to the profile; the row references the package by name so
+# Node resolution finds the installed code.
+- insert:
+    - id: miliastra-knowledge
+      name: miliastra-knowledge
