@@ -49,8 +49,6 @@ dsh web --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml
 dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml "嘲讽目标节点的参数是什么"
 ```
 
-从 GitHub 安装说明：git 安装获取的是源码而不是构建产物，本插件入口直接是 `src/index.ts`（由 dsh 运行时通过 TS 加载器处理，没有 `prepare`/`build` 脚本），因此无需额外的构建放行配置。建议固定 commit（`github:1475505/dsh-plugin-miliastra-toolbox#<sha>`），避免后续推送改变你信任的代码。
-
 ### 配置项
 
 在 profile 的 `cordis.patch.yml` 里覆盖插件行配置（不需要可跳过）：
@@ -110,7 +108,9 @@ dsh-plugin-miliastra-toolbox/
 │   └── skill.ts      读取 skill.md 并注册为运行时技能
 ├── skill.md          模型侧使用指引（基于上游 mcp/SKILL.md 的双模版：插件工具优先、HTTP curl 兜底）
 ├── cordis.yml        bundle patch：插件行声明，dsh plugin add 时作为 bundle 层插入
-├── package.json      包清单：dsh.bundle 声明、registry 依赖、入口指向 src/index.ts
+├── tsdown.config.ts  tsdown 打包配置：src/ → lib/index.js（单文件 ESM，依赖保持 external）
+├── lib/index.js      build 产物（已提交仓库，git/本地安装无需构建即可加载）
+├── package.json      包清单：dsh.bundle 声明、registry 依赖、入口指向 lib/index.js
 ├── pnpm-lock.yaml    依赖锁定，保证可复现安装
 ├── pnpm-workspace.yaml  发布年龄豁免（minimumReleaseAgeExclude）
 ├── .gitignore        排除 node_modules 等
@@ -119,6 +119,7 @@ dsh-plugin-miliastra-toolbox/
 
 ## 注意事项
 
+- 入口必须是构建产物 `lib/index.js`：宿主 dsh 用 Node 直接 `import` 插件包，而 Node 对 `node_modules` 下的 `.ts` 文件禁用类型剥离（`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`），所以不能把 `main` 指回 `src/index.ts`。改动 `src/` 后请运行 `pnpm build` 并提交新的 `lib/index.js`。
 - 工具名未加前缀，与上游 SKILL.md 保持一致；与其他插件重名时需要改名并同步 `skill.md`。
 - 工具结果是知识库 API 的原样 JSON（`data.result` 解包后），字段含义由技能正文向模型说明。
 - 依赖：`@deepseek-ai/dsh-tools`、`@deepseek-ai/dsh-skill`、`@deepseek-ai/schemastery` 取 npm registry 的 `0.1.0-rc.6` 线；`@deepseek-ai/cordis` 是 peerDependency，由宿主 dsh 提供（`^4.0.1`）。

@@ -5,8 +5,9 @@
   "license": "MIT",
   "private": false,
   "type": "module",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "files": [
+    "lib",
     "src",
     "skill.md",
     "cordis.yml",
@@ -16,10 +17,16 @@
     "type": "git",
     "url": "git+https://github.com/1475505/dsh-plugin-miliastra-toolbox.git"
   },
+  "scripts": {
+    "build": "tsdown"
+  },
   "dependencies": {
     "@deepseek-ai/dsh-skill": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
     "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "devDependencies": {
+    "tsdown": "0.22.14"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1"
