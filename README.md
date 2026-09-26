@@ -73,13 +73,13 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 
 ### 备选：纯 Skill 集成（不安装插件）
 
-技能文件由上游维护，位于 [Miliastra-toolbox 仓库的 `skills/miliastra-knowledge`](https://github.com/1475505/Miliastra-toolbox/tree/main/skills/miliastra-knowledge)（`SKILL.md` + `references/tools.md`）。Harness 原生支持 SKILL.md 技能（`dsh-skill-filesystem` 扫描项目与用户技能根），集成流程：
+技能文件由上游维护，位于 Miliastra-toolbox 仓库 `skills/` 下的两个技能目录：通用 [`miliastra-knowledge`](https://github.com/1475505/Miliastra-toolbox/tree/main/skills/miliastra-knowledge) 与客户端 lua 场景 [`miliastra-knowledge-lua`](https://github.com/1475505/Miliastra-toolbox/tree/main/skills/miliastra-knowledge-lua)（各含 `SKILL.md` + `references/tools.md`）。Harness 原生支持 SKILL.md 技能（`dsh-skill-filesystem` 扫描项目与用户技能根），集成流程：
 
 1. **获取技能目录**（任选其一）：
    ```sh
    # 方式一：克隆上游仓库后取目录
    git clone --depth 1 https://github.com/1475505/Miliastra-toolbox.git /tmp/miliastra-upstream
-   # 方式二：直接下载两个文件
+   # 方式二：直接下载通用技能（客户端 lua 场景把路径换成 miliastra-knowledge-lua 即可）
    mkdir -p /tmp/miliastra-knowledge/references
    curl -o /tmp/miliastra-knowledge/SKILL.md \
      https://raw.githubusercontent.com/1475505/Miliastra-toolbox/main/skills/miliastra-knowledge/SKILL.md
@@ -96,7 +96,7 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 
 注意：
 
-- 纯 Skill 模式只有 `miliastra-knowledge` 一个技能（上游单技能结构，客户端工具说明是其中一个章节），**没有**插件的 `miliastra-knowledge-lua` 场景拆分。
+- 上游技能与插件都是双技能结构、场景划分一致：通用技能不含客户端工具，客户端工具只出现在 `miliastra-knowledge-lua`。纯 Skill 模式下两个技能可按场景分别安装，纯客户端 lua 开发者可只装 `miliastra-knowledge-lua`。
 - 本插件与纯 Skill 都注册同名技能 `miliastra-knowledge`，技能注册表按 rank 二选一，不要同时启用。
 
 **知识库 API 端点**：https://ugc.070077.xyz
@@ -106,7 +106,7 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 | | 插件（本仓库） | 纯 Skill |
 |---|---|---|
 | 调用方式 | 6 个原生工具，schema 校验、超时、无需 curl | 模型自行 curl（需要 bash 能力） |
-| 技能正文 | 本仓库双模版 `skill.md` + `skill-lua.md`，按通用/客户端 lua 场景拆成两个技能 | 上游原版（单技能，客户端工具是其中一节） |
+| 技能正文 | 本仓库双模版 `skill.md` + `skill-lua.md`（原生工具优先，curl 兜底） | 上游双技能 `skills/miliastra-knowledge` + `skills/miliastra-knowledge-lua`（纯 curl） |
 | 依赖 | dsh-tools/dsh-skill/schemastery | 无 |
 
 ## 文件结构
