@@ -5,7 +5,7 @@ import type { SkillRegistration } from '@deepseek-ai/dsh-skill'
 /**
  * Model-facing usage guidance for the general knowledge base (server-side
  * node graphs, systems, troubleshooting), based on the upstream
- * `Miliastra-toolbox/mcp/SKILL.md` with a dual-mode calling section: native
+ * `Miliastra-toolbox/skills/miliastra-knowledge/SKILL.md` with a dual-mode calling section: native
  * tools when the plugin registers them, HTTP curl as the fallback for
  * tool-less skill-only setups. Kept as a sibling markdown file so syncing
  * against upstream stays a diff. Deliberately unaware of the client tools.

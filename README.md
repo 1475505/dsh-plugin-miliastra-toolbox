@@ -118,7 +118,7 @@ dsh-plugin-miliastra-toolbox/
 │   ├── http.ts       知识库 Skill API 客户端：POST 调用、信封解包、信号取消
 │   ├── tools.ts      6 个工具定义（defineTool）：参数 schema、语义校验、超时、并发声明
 │   └── skill.ts      读取 skill.md 与 skill-lua.md，注册两个运行时技能（按场景分流）
-├── skill.md          模型侧使用指引·通用场景（基于上游 mcp/SKILL.md 的双模版：插件工具优先、HTTP curl 兜底），不含客户端工具
+├── skill.md          模型侧使用指引·通用场景（基于上游 skills/miliastra-knowledge/SKILL.md 的双模版：插件工具优先、HTTP curl 兜底），不含客户端工具
 ├── skill-lua.md      模型侧使用指引·仅 2D+lua 场景（客户端控件与客户端脚本文档），是客户端工具的唯一技能入口
 ├── cordis.yml        bundle patch：插件行声明，dsh plugin add 时作为 bundle 层插入
 ├── tsdown.config.ts  tsdown 打包配置：src/ → lib/index.js（单文件 ESM，依赖保持 external）
