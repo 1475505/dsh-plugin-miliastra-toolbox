@@ -13,12 +13,14 @@ function requireQueries(values: string[], field: string): void {
 }
 
 /**
- * Register the four miliastra-knowledge Skill API endpoints as native tools.
- * Each returns the unwrapped API payload as its canonical JSON value; the
- * Native renderer shows that JSON verbatim, and the `miliastra-knowledge`
- * skill teaches the model how to route between the tools.
+ * Register the miliastra-knowledge Skill API endpoints as native tools: the
+ * four general ones always, and the two client-only ones gated by
+ * `includeClientTools` (owned by the `miliastra-knowledge-lua` skill). Each
+ * returns the unwrapped API payload as its canonical JSON value; the Native
+ * renderer shows that JSON verbatim, and the skills teach the model how to
+ * route between the tools.
  */
-export function registerMiliastraTools(ctx: Context, client: SkillApiClient, timeoutMs: number): void {
+export function registerMiliastraTools(ctx: Context, client: SkillApiClient, timeoutMs: number, includeClientTools: boolean): void {
   ctx.tools.register(defineTool({
     name: 'get_node_info',
     description:
@@ -46,7 +48,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
   ctx.tools.register(defineTool({
     name: 'list_documents',
     description:
-      '列出千星沙箱知识库中的文档标题（官方指南/教程/FAQ，不含正文）。不知道精确文档名时先用它浏览有哪些文档；不传 keywords 时列出全部 300+ 篇文档。',
+      '列出千星沙箱知识库中的文档标题（官方指南/教程/FAQ，不含正文）。不知道精确文档名时先用它浏览有哪些文档；不传 keywords 时列出全部 300+ 篇文档。不含客户端控件/客户端脚本文档——那是 list_client_documents 的职责。',
     parameters: {
       keywords: {
         type: 'array',
@@ -70,7 +72,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
   ctx.tools.register(defineTool({
     name: 'get_document',
     description:
-      '按标题获取千星沙箱官方文档全文，支持模糊匹配与批量获取。单个关键词命中超过 5 篇时只返回标题列表（status 为 too_many），需换更精确的关键词重查。',
+      '按标题获取千星沙箱官方文档全文，支持模糊匹配与批量获取。单个关键词命中超过 5 篇时只返回标题列表（status 为 too_many），需换更精确的关键词重查。不含客户端控件/客户端脚本文档——用 get_client_document。',
     parameters: {
       titles: {
         type: 'array',
@@ -94,7 +96,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
   ctx.tools.register(defineTool({
     name: 'rag_search',
     description:
-      '对千星沙箱知识库做自然语言语义检索，返回相关文档片段（含相似度 similarity 与来源文档）。适合开放问题与「为什么不触发/不生效」类排障；能用节点名或文档名直接定位时优先用 get_node_info / get_document。',
+      '对千星沙箱知识库做自然语言语义检索，返回相关文档片段（含相似度 similarity 与来源文档）。适合开放问题与「为什么不触发/不生效」类排障；能用节点名或文档名直接定位时优先用 get_node_info / get_document。仅覆盖服务端语料，客户端语料请用 list_client_documents / get_client_document。',
     parameters: {
       queries: {
         type: 'array',
@@ -122,4 +124,54 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
       return await callSkillApi(client, 'rag_search', body, exec.signal) as JsonValue
     },
   }))
+
+  if (includeClientTools) {
+    ctx.tools.register(defineTool({
+      name: 'list_client_documents',
+      description:
+        '列出千星奇域客户端控件/客户端脚本（lua）文档标题（不含正文），仅用于 2D + lua 脚本游戏制作场景。服务端节点图与玩法逻辑问题用 list_documents，不要用本工具。',
+      parameters: {
+        keywords: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '过滤关键词列表，对标题和文件名做模糊匹配，多个关键词按关键词分组返回；省略或传空列表时返回全部 10 篇客户端文档。',
+        },
+      },
+      output: {
+        schema: { type: 'json' },
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+      },
+      timeoutMs,
+      isConcurrencySafe: () => true,
+      async execute(args, exec) {
+        if (args.keywords !== undefined) requireQueries(args.keywords, 'keywords')
+        const body = args.keywords === undefined ? {} : { keywords: args.keywords }
+        return await callSkillApi(client, 'list_client_documents', body, exec.signal) as JsonValue
+      },
+    }))
+
+    ctx.tools.register(defineTool({
+      name: 'get_client_document',
+      description:
+        '按标题获取千星奇域客户端控件/客户端脚本（lua）文档全文，支持模糊匹配与批量获取，仅用于 2D + lua 脚本游戏制作场景。单个关键词命中超过 5 篇时只返回标题列表（status 为 too_many），需换更精确的关键词重查。',
+      parameters: {
+        titles: {
+          type: 'array',
+          items: { type: 'string' },
+          required: true,
+          description: '客户端文档标题或关键词列表，支持模糊匹配；多篇相关文档一次批量获取。',
+        },
+      },
+      output: {
+        schema: { type: 'json' },
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+      },
+      timeoutMs,
+      isConcurrencySafe: () => true,
+      async execute(args, exec) {
+        requireQueries(args.titles, 'titles')
+        return await callSkillApi(client, 'get_client_document', { titles: args.titles }, exec.signal) as JsonValue
+      },
+    }))
+  }
 }

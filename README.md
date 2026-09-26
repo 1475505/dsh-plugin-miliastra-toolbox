@@ -1,6 +1,6 @@
 # dsh-plugin-miliastra-toolbox
 
-DeepSeek Harness 插件：接入[千星沙箱知识库](https://ugc.070077.xyz)（原神千星奇域 UGC 编辑器的节点/指南/教程/FAQ，300+ 篇文档）。
+DeepSeek Harness 插件：接入[千星沙箱知识库](https://ugc.070077.xyz)（原神千星奇域 UGC 编辑器的节点/指南/教程/FAQ，300+ 篇文档，外加 10 篇客户端控件/客户端脚本文档）。
 
 ## 这个插件是什么
 
@@ -10,8 +10,9 @@ DeepSeek Harness 插件：接入[千星沙箱知识库](https://ugc.070077.xyz)�
 - 「复杂造物怎么做定点位移？」
 - 「我的碰撞触发器不触发是为什么？」
 - 「奥黛塔的经典模式 ID 是？」
+- 「预设按钮控件的四种状态怎么配？」（客户端 lua 场景）
 
-插件注册 4 个工具（模型会自动选用，不需要你指定）：
+插件注册 6 个工具（模型会自动选用，不需要你指定）：
 
 | 工具 | 用途 |
 |------|------|
@@ -19,8 +20,15 @@ DeepSeek Harness 插件：接入[千星沙箱知识库](https://ugc.070077.xyz)�
 | `list_documents` | 按关键词列出文档标题（不含正文），不确定文档名时先看有哪些 |
 | `get_document` | 按标题获取官方文档全文 |
 | `rag_search` | 自然语言语义检索文档片段，适合开放问题与排障 |
+| `list_client_documents` | 按关键词列出客户端控件/客户端脚本文档标题，**仅 2D+lua 场景** |
+| `get_client_document` | 按标题获取客户端控件/客户端脚本文档全文，**仅 2D+lua 场景** |
 
-插件还注册同名技能 `miliastra-knowledge`：模型看到匹配的问题会先加载技能正文，按其中的指引（选工具优先级、批量原则、输出规范）使用工具。也可以主动说「用 miliastra-knowledge 技能查一下」，或发送 `/miliastra-knowledge`。
+插件还注册两个技能，按场景分流：
+
+- `miliastra-knowledge`（通用）：服务端节点图、系统配置、排障。模型看到匹配问题会先加载技能正文，按其中的指引（选工具优先级、批量原则、输出规范）使用工具；**不涉及客户端工具**。
+- `miliastra-knowledge-lua`（仅 2D + lua 脚本游戏制作）：客户端控件与客户端脚本（lua）编程，是 `list_client_documents` / `get_client_document` 的唯一入口。
+
+也可以主动说「用 miliastra-knowledge-lua 技能查一下」，或发送 `/miliastra-knowledge-lua`。
 
 ## 怎么集成到 DeepSeek Harness 里
 
@@ -60,6 +68,7 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
       config:
         baseUrl: 'https://ugc.070077.xyz'  # 知识库服务器地址
         timeoutMs: 30000                    # 单次工具调用的超时预算（毫秒）
+        clientTools: true                   # 是否注册仅客户端 lua 场景的 2 个工具（list/get_client_document）
 ```
 
 ### 备选：纯 Skill 集成（不安装插件）
@@ -85,7 +94,10 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 3. **启动 dsh**：`dsh web`（或 headless）。模型在技能目录中看到 `miliastra-knowledge`，匹配问题时会先加载技能正文，按其中的 HTTP 调用方式 curl 请求知识库 API，并按需读取 `references/tools.md`（参数表、关键词表）。
 4. **使用**：直接提问千星沙箱问题；或消息里带 `/miliastra-knowledge` 注入技能正文。
 
-注意：本插件与纯 Skill 都注册同名技能 `miliastra-knowledge`，技能注册表按 rank 二选一，不要同时启用。
+注意：
+
+- 纯 Skill 模式只有 `miliastra-knowledge` 一个技能（上游单技能结构，客户端工具说明是其中一个章节），**没有**插件的 `miliastra-knowledge-lua` 场景拆分。
+- 本插件与纯 Skill 都注册同名技能 `miliastra-knowledge`，技能注册表按 rank 二选一，不要同时启用。
 
 **知识库 API 端点**：https://ugc.070077.xyz
 
@@ -93,8 +105,8 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 
 | | 插件（本仓库） | 纯 Skill |
 |---|---|---|
-| 调用方式 | 4 个原生工具，schema 校验、超时、无需 curl | 模型自行 curl（需要 bash 能力） |
-| 技能正文 | 本仓库双模版 `skill.md`（原生工具优先、curl 兜底） | 上游原版（`skills/miliastra-knowledge`） |
+| 调用方式 | 6 个原生工具，schema 校验、超时、无需 curl | 模型自行 curl（需要 bash 能力） |
+| 技能正文 | 本仓库双模版 `skill.md` + `skill-lua.md`，按通用/客户端 lua 场景拆成两个技能 | 上游原版（单技能，客户端工具是其中一节） |
 | 依赖 | dsh-tools/dsh-skill/schemastery | 无 |
 
 ## 文件结构
@@ -102,11 +114,12 @@ dsh --profile headless --patch /path/to/dsh-plugin-miliastra-toolbox/cordis.yml 
 ```
 dsh-plugin-miliastra-toolbox/
 ├── src/
-│   ├── index.ts      插件入口：导出 name/inject/Config/apply，注册 4 个工具和技能
+│   ├── index.ts      插件入口：导出 name/inject/Config/apply，注册 6 个工具（clientTools 可关掉 2 个客户端工具）和 2 个技能
 │   ├── http.ts       知识库 Skill API 客户端：POST 调用、信封解包、信号取消
-│   ├── tools.ts      4 个工具定义（defineTool）：参数 schema、语义校验、超时、并发声明
-│   └── skill.ts      读取 skill.md 并注册为运行时技能
-├── skill.md          模型侧使用指引（基于上游 mcp/SKILL.md 的双模版：插件工具优先、HTTP curl 兜底）
+│   ├── tools.ts      6 个工具定义（defineTool）：参数 schema、语义校验、超时、并发声明
+│   └── skill.ts      读取 skill.md 与 skill-lua.md，注册两个运行时技能（按场景分流）
+├── skill.md          模型侧使用指引·通用场景（基于上游 mcp/SKILL.md 的双模版：插件工具优先、HTTP curl 兜底），不含客户端工具
+├── skill-lua.md      模型侧使用指引·仅 2D+lua 场景（客户端控件与客户端脚本文档），是客户端工具的唯一技能入口
 ├── cordis.yml        bundle patch：插件行声明，dsh plugin add 时作为 bundle 层插入
 ├── tsdown.config.ts  tsdown 打包配置：src/ → lib/index.js（单文件 ESM，依赖保持 external）
 ├── lib/index.js      build 产物（已提交仓库，git/本地安装无需构建即可加载）
@@ -120,7 +133,8 @@ dsh-plugin-miliastra-toolbox/
 ## 注意事项
 
 - 入口必须是构建产物 `lib/index.js`：宿主 dsh 用 Node 直接 `import` 插件包，而 Node 对 `node_modules` 下的 `.ts` 文件禁用类型剥离（`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`），所以不能把 `main` 指回 `src/index.ts`。改动 `src/` 后请运行 `pnpm build` 并提交新的 `lib/index.js`。
-- 工具名未加前缀，与上游 SKILL.md 保持一致；与其他插件重名时需要改名并同步 `skill.md`。
+- 工具名未加前缀，与上游 SKILL.md 保持一致；与其他插件重名时需要改名并同步两个技能正文。
+- 客户端工具（`list_client_documents` / `get_client_document`）仅服务于 2D + lua 脚本游戏制作场景，由 `miliastra-knowledge-lua` 技能指引调用；`miliastra-knowledge` 技能不涉及这两个工具。dsh 的工具注册表没有"按场景隐藏工具"的机制（`restrict` 需要 agent.ctx，插件侧拿不到），所以这是技能级软隔离；要彻底不注册可设 `clientTools: false`。
 - 工具结果是知识库 API 的原样 JSON（`data.result` 解包后），字段含义由技能正文向模型说明。
 - 依赖：`@deepseek-ai/dsh-tools`、`@deepseek-ai/dsh-skill`、`@deepseek-ai/schemastery` 取 npm registry 的 `0.1.0-rc.6` 线；`@deepseek-ai/cordis` 是 peerDependency，由宿主 dsh 提供（`^4.0.1`）。
 
@@ -129,3 +143,4 @@ dsh-plugin-miliastra-toolbox/
 知识工具由 [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) 维护，本插件只是消费方，不拥有知识库：
 
 - 节点说明、官方指南/教程/FAQ 与社区经验由该仓库的 `knowledge/` 管线构建（爬虫抓取原始文档、`process_docs.py` 派生结构化索引）。
+- 客户端控件/客户端脚本文档（`knowledge/Miliastra-knowledge/client/`，10 篇）同样由该仓库维护，插件通过 Skill API 的 `list_client_documents` / `get_client_document` 两个仅对外端点消费。
