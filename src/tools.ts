@@ -1,5 +1,5 @@
 import type { Context } from '@deepseek-ai/cordis'
-import { defineTool, type JsonValue } from '@deepseek-ai/dsh-tools'
+import { defineTool } from '@deepseek-ai/dsh-tools'
 import { callSkillApi, type SkillApiClient } from './http.ts'
 
 /**
@@ -41,7 +41,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
     isConcurrencySafe: () => true,
     async execute(args, exec) {
       requireQueries(args.names, 'names')
-      return await callSkillApi(client, 'get_node_info', { names: args.names }, exec.signal) as JsonValue
+      return await callSkillApi(client, 'get_node_info', { names: args.names }, exec.signal)
     },
   }))
 
@@ -65,7 +65,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
     async execute(args, exec) {
       if (args.keywords !== undefined) requireQueries(args.keywords, 'keywords')
       const body = args.keywords === undefined ? {} : { keywords: args.keywords }
-      return await callSkillApi(client, 'list_documents', body, exec.signal) as JsonValue
+      return await callSkillApi(client, 'list_documents', body, exec.signal)
     },
   }))
 
@@ -89,7 +89,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
     isConcurrencySafe: () => true,
     async execute(args, exec) {
       requireQueries(args.titles, 'titles')
-      return await callSkillApi(client, 'get_document', { titles: args.titles }, exec.signal) as JsonValue
+      return await callSkillApi(client, 'get_document', { titles: args.titles }, exec.signal)
     },
   }))
 
@@ -121,7 +121,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
         throw new Error('top_k must be between 1 and 20')
       }
       const body = args.top_k === undefined ? { queries: args.queries } : { queries: args.queries, top_k: args.top_k }
-      return await callSkillApi(client, 'rag_search', body, exec.signal) as JsonValue
+      return await callSkillApi(client, 'rag_search', body, exec.signal)
     },
   }))
 
@@ -146,7 +146,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
       async execute(args, exec) {
         if (args.keywords !== undefined) requireQueries(args.keywords, 'keywords')
         const body = args.keywords === undefined ? {} : { keywords: args.keywords }
-        return await callSkillApi(client, 'list_client_documents', body, exec.signal) as JsonValue
+        return await callSkillApi(client, 'list_client_documents', body, exec.signal)
       },
     }))
 
@@ -170,7 +170,7 @@ export function registerMiliastraTools(ctx: Context, client: SkillApiClient, tim
       isConcurrencySafe: () => true,
       async execute(args, exec) {
         requireQueries(args.titles, 'titles')
-        return await callSkillApi(client, 'get_client_document', { titles: args.titles }, exec.signal) as JsonValue
+        return await callSkillApi(client, 'get_client_document', { titles: args.titles }, exec.signal)
       },
     }))
   }

@@ -25,6 +25,7 @@ dsh web
 ### 前置条件
 
 - 已安装 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)，Node 22.19+
+- Harness 版本落在支持区间内：`0.1.0-rc.6` 起、含 `0.2.x`。区间外的版本 `dsh plugin add` 会按 peer 校验判定「不兼容」并**直接拒绝安装**（可用 `dsh plugin allow-version <pkg>@<ver> --dsh-version <ver> --accept-risk` 逐版本强制放行）
 - 能访问知识库 `https://ugc.070077.xyz`
 
 ### 方式一：装成插件（推荐）
@@ -180,7 +181,7 @@ dsh-plugin-miliastra-toolbox/
 - 工具名未加前缀，与上游 SKILL.md 保持一致；与其他插件重名时需要改名并同步两个技能正文。
 - 工具结果是知识库 API 的原样 JSON（`data.result` 解包后），字段含义由技能正文向模型说明。
 - 客户端工具（`list_client_documents` / `get_client_document`）是**技能级软隔离**：dsh 的工具注册表没有"按场景隐藏工具"的机制（`restrict` 需要 `agent.ctx`，插件侧拿不到），靠 `miliastra-knowledge-lua` 技能指引调用；要彻底不注册可设 `clientTools: false`。
-- 依赖：`@deepseek-ai/dsh-tools`、`@deepseek-ai/dsh-skill`、`@deepseek-ai/schemastery` 取 npm registry 的 `0.1.0-rc.6` 线；`@deepseek-ai/cordis` 是 peerDependency，由宿主 dsh 提供（`^4.0.1`）。
+- 依赖：`@deepseek-ai/dsh-tools` 与 `@deepseek-ai/dsh-skill` 的 peer 范围是 `^0.1.0-rc.6 || ^0.2.0-rc.1`，同时覆盖 0.1 与 0.2 两条线（Harness 会拿运行时版本逐条比对 `@deepseek-ai/dsh-*` peer，范围不合就直接拒绝安装）；`@deepseek-ai/cordis`（`^4.0.1`）与 `@deepseek-ai/schemastery`（`^3.18.1`）同样是 peerDependency，由宿主 dsh 在运行时提供。devDependencies 仍停在 `0.1.0-rc.6` 线，源码刻意不引用两条线之间被搬家的类型再导出（如 `JsonValue`），因此两条编译基线都能通过类型检查。
 
 ## 上游与贡献
 

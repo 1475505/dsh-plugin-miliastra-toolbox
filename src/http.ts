@@ -20,6 +20,16 @@ interface SkillApiEnvelope {
 }
 
 /**
+ * Lossless JSON value carried by the unwrapped `data.result` payload.
+ *
+ * Declared here rather than imported: the harness type lives in
+ * `@deepseek-ai/dsh-tools` on the 0.1 line but moved to
+ * `@deepseek-ai/dsh-util-values` in 0.2, and no single import path covers both.
+ * A structural copy keeps this source compiling against either baseline.
+ */
+export type SkillApiJson = null | boolean | number | string | SkillApiJson[] | { [key: string]: SkillApiJson }
+
+/**
  * Invoke one Skill API tool and unwrap its envelope.
  *
  * @param client - resolved plugin connection settings.
@@ -35,7 +45,7 @@ export async function callSkillApi(
   tool: string,
   body: Record<string, unknown>,
   signal: AbortSignal,
-): Promise<unknown> {
+): Promise<SkillApiJson> {
   const response = await fetch(`${client.baseUrl}/api/v1/skills/miliastra-knowledge/tools/${tool}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -48,5 +58,5 @@ export async function callSkillApi(
     const detail = typeof envelope.error === 'string' ? envelope.error : JSON.stringify(envelope.error)
     throw new Error(`miliastra-knowledge ${tool}: ${detail ?? 'request rejected'}`)
   }
-  return envelope.data?.result ?? null
+  return (envelope.data?.result ?? null) as SkillApiJson
 }
